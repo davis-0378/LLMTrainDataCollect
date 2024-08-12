@@ -1,13 +1,16 @@
 import tkinter as tk
 from tkinter import filedialog, messagebox
-import os
 from getComment import getComment as GC
 import datetime
+from saveToJson import saveToJson
 
 class CommentCollectSystem:
     def __init__(self, root):
         self.root = root
         self.root.title("Comment Collect System")
+
+        #儲存模組
+        self.SVJ = saveToJson()
         
         # Frame for inputs
         self.frame = tk.Frame(self.root)
@@ -40,7 +43,7 @@ class CommentCollectSystem:
         self.browse_button.grid(row=4, column=2)
         
         # The essential
-        tk.Label(self.frame, text="檔案名稱(預設為 'data日期.txt' ):").grid(row=5, column=0, sticky=tk.W)
+        tk.Label(self.frame, text="檔案名稱(預設為 'data日期.json' ):").grid(row=5, column=0, sticky=tk.W)
         self.fileName_var = tk.Entry(self.frame)
         self.fileName_var.grid(row=5, column=1)
         
@@ -52,28 +55,6 @@ class CommentCollectSystem:
         directory = filedialog.askdirectory()
         if directory:
             self.dir_path.insert(0, directory)
-
-    def save_text_to_file(self, text, directory, filename):
-        """
-        將文字內容儲存為txt檔案並存入指定目錄。
-        
-        :param text: 要儲存的文字內容
-        :param directory: 要儲存檔案的目錄路徑
-        :param filename: 儲存檔案的名稱（包含副檔名，如 "output.txt"）
-        """
-        # 確保目錄存在
-        if not os.path.exists(directory):
-            os.makedirs(directory)
-        
-        # 完整的檔案路徑
-        file_path = os.path.join(directory, filename)
-        
-        try:
-            with open(file_path, 'w', encoding='utf-8') as file:
-                file.write(text)
-            print(f"文字已成功儲存至 {file_path}")
-        except Exception as e:
-            print(f"儲存檔案時發生錯誤: {e}")
     
     def submit(self):
         min_length = self.min_length.get()
@@ -97,12 +78,12 @@ class CommentCollectSystem:
         if not essential:
             essential = "台北+餐廳"
         else:
-            essential += "餐廳"
+            essential += " 餐廳"
 
         if not file_Name:
-            file_Name = "data" + str(today.year) + str(today.month) + str(today.day) + ".txt"
+            file_Name = "data" + str(today.year) + str(today.month) + str(today.day) + ".json"
         else:
-            file_Name += ".txt"
+            file_Name += ".json"
         
         if not (dir_path):
             messagebox.showerror("錯誤", "請填寫儲存位置")
@@ -130,10 +111,11 @@ class CommentCollectSystem:
         """
         messagebox.showinfo("提交結果", result)
 
-        getComment = GC(num_comments, min_length, max_length, essential)
+        getComment = GC(num_comments, min_length, max_length, essential, self.SVJ)
         getComment.main()
 
-        self.save_text_to_file(str(getComment.getResult()) , dir_path, file_Name)
+        self.SVJ.printResult()
+        self.SVJ.save_text_to_file(dir_path, file_Name)
 
 if __name__ == "__main__":
     root = tk.Tk()
