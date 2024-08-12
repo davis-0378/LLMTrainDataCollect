@@ -1,6 +1,6 @@
 # LLMTrainDataCollect
 
-## wlecome to statrt :empty_nest:
+## wlecome to start :empty_nest:
 ![Language](https://img.shields.io/badge/language-python-brightgreen)  
 
 ### 下載程式 :heavy_check_mark:
@@ -17,3 +17,8 @@ Just [click](https://github.com/davis-0378/LLMTrainDataCollect/raw/main/CommentC
 > ActionChains(driver).move_to_element(commentDiv).send_keys(Keys.END).perform()
 > ```
                     
+### 更新紀錄
+* 2024/08/12
+> #### 將儲存格式從 csv 變成 json
+> 因為在評論中可能會出現','，但剛好的是 csv 用於隔開 column 之間的分隔符號恰巧是 ',' ，所以必須使用別種儲存方式。
+> 因為使用 selenium 直接擷取網頁元素的關係，換行符號'\n'也會一同被扒取下來，導致資料在儲存到 json 檔案後，評論內會出現很多個'\n'，所以在爬到評論並儲存前先將'\n'這個特殊字符先從評論中剔除。
