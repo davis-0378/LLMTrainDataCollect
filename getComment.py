@@ -11,7 +11,7 @@ from selenium.webdriver.common.keys import Keys
 import time
 
 class getComment(object):
-    def __init__(self, comment_number, comment_min_size, comment_max_size, essential):
+    def __init__(self, comment_number, comment_min_size, comment_max_size, essential, svjModel):
         self.comment_number = comment_number #需要的評論數量
         self.comment_min_size = comment_min_size # 每則評論的最小字數 
         self.comment_max_size = comment_max_size # 每則評論的最大字數
@@ -19,6 +19,8 @@ class getComment(object):
         #參數設定
         self.index = 0
         self.result = ""
+        #儲存模組
+        self.SVJ = svjModel
 
     def main(self):
         # 設定Chrome選項
@@ -52,8 +54,9 @@ class getComment(object):
             # 關閉瀏覽器
             driver.quit()
 
-    def getResult(self):
-        return self.result
+    # 用來檢查抓出來的資料 => CSV格式
+    def printResult(self):
+        print(self.result)
 
     def getComment(self, link):
         # 設定Chrome選項
@@ -100,9 +103,15 @@ class getComment(object):
                     comment_text = comment.find_element(By.XPATH, 'div/div/div[4]/div[2]/div/span[1]').text                          
                  
                     # 檢查這個評論的字數是否在限制範圍內 
-                    if(len(comment_text) > self.comment_min_size & len(comment_text) <= self.comment_max_size):
+                    if(self.comment_min_size < len(comment_text) <= self.comment_max_size):
                         self.result += comment_text + ", " + star_number[0] + "\n\n"
+                        # 將資料儲存進儲存資料的元件中
+                        self.SVJ.appendData(comment_text, star_number[0])
                         self.index += 1
+
+                        print("size : " + str(len(comment_text)))
+                        #print("text : " + comment_text)
+                        print( str(self.comment_min_size) + " ~ " + str(self.comment_max_size))
                     
                     if(self.index >= self.comment_number):
                         break
@@ -116,7 +125,7 @@ class getComment(object):
                     ActionChains(driver).move_to_element(commentDiv).send_keys(Keys.END).perform()
                     time.sleep(0.75)  # 添加适当的延迟以模拟滚动过程
 
-                    # 靶心出現的評論單獨分開，原本出現過的評論就不必再使用
+                    # 把新出現的評論單獨分開，原本出現過的評論就不必再使用
                     original_comments = comments
                     print("get comments")
                     new_comments = driver.find_elements(By.XPATH, "(//*[@id='QA0Szd']/div/div/div[1]/div[2]/div/div[1]/div/div/div[2]/div[9]/div)")
@@ -140,8 +149,12 @@ class getComment(object):
                                                         
                             
                                 # 檢查這個評論的字數是否在限制範圍內 
-                                if(len(comment_text) > self.comment_min_size & len(comment_text) <= self.comment_max_size):
+                                if(self.comment_min_size < len(comment_text) <= self.comment_max_size):
                                     self.result += comment_text + ", " + star_number[0] + "\n\n"
+                                    if '\n' in comment_text:
+                                        comment_text = comment_text.replace('\n', '')
+                                    # 將資料儲存進儲存資料的元件中
+                                    self.SVJ.appendData(comment_text, star_number[0])
                                     self.index += 1
                                 
                                     print("index : " + str(self.index))
@@ -160,7 +173,6 @@ class getComment(object):
                     #如果這個餐廳的評論已全部被抓出來就結束
                     if(restaurant_comment_number == 0):
                         break
-
         except Exception as e:
             print(f"發生錯誤: {e}")
         finally:
